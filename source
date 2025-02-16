@@ -1,69 +1,61 @@
--- Dominator UI Library DESISTO
-local DominatorUi = {}
+-- JESUS AJUDA POR FAVOR
+function lib:CreateWindow(title)
+    local window = {
+        Font = Enum.Font.RobotoMono,
+        AccentColor = Color3.fromRGB(255, 85, 85)
+    }
 
--- Serviços do Roblox
-local UserInputService = game:GetService("User InputService")
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
+    local GUI = Instance.new("ScreenGui")
+    GUI.Name = "DominatorGUI"
+    GUI.Parent = game.CoreGui
+    GUI.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    GUI.IgnoreGuiInset = true
 
--- Função para criar novos elementos
-local function Create(instanceType, properties, children)
-    local instance = Instance.new(instanceType)
-    for prop, value in pairs(properties) do
-        instance[prop] = value
-    end
-    for _, child in ipairs(children or {}) do
-        child.Parent = instance
-    end
-    return instance
-end
+    local MainFrame = Instance.new("Frame")
+    MainFrame.BackgroundColor3 = Color3.fromRGB(19, 21, 25)
+    MainFrame.BorderSizePixel = 0
+    MainFrame.Size = UDim2.new(0, 600, 0, 300)
+    MainFrame.Position = UDim2.new(0.5, -300, 0.5, -150)
+    MainFrame.Parent = GUI
 
--- Função para criar uma nova janela
-function DominatorUi:CreateWindow(title)
-    if _G.DominatorUiLoaded then return end
-    _G.DominatorUiLoaded = true
+    local TitleLabel = Instance.new("TextLabel")
+    TitleLabel.BackgroundTransparency = 1
+    TitleLabel.Size = UDim2.new(1, -20, 0, 25)
+    TitleLabel.Position = UDim2.new(0, 25, 0, 1)
+    TitleLabel.Text = title
+    TitleLabel.Font = Enum.Font.Roboto
+    TitleLabel.TextColor3 = Color3.fromRGB(243, 243, 243)
+    TitleLabel.TextSize = 13
+    TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    TitleLabel.Parent = MainFrame
 
-    local gui = Create("ScreenGui", {
-        Name = "DominatorUi",
-        Parent = game.CoreGui,
-        ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
-        IgnoreGuiInset = true
-    }, {})
+    -- Adicionando a ImageLabel no canto do GUI
+    local Icon = Instance.new("ImageLabel")
+    Icon.Position = UDim2.new(0, 3, 0, 3)
+    Icon.Size = UDim2.new(0, 20, 0, 20)
+    Icon.BackgroundTransparency = 1
+    Icon.Image = "rbxassetid://9483813933" -- ID da imagem
+    Icon.Parent = MainFrame
 
-    local mainFrame = Create("Frame", {
-        Name = "MainFrame",
-        Parent = gui,
-        BackgroundColor3 = Color3.fromRGB(25, 25, 25),
-        Size = UDim2.new(0, 600, 0, 400),
-        Position = UDim2.new(0.5, -300, 0.5, -200),
-        AnchorPoint = Vector2.new(0.5, 0.5)
-    }, {
-        Create("UICorner", { CornerRadius = UDim.new(0, 5) }),
-        Create("TextLabel", {
-            Name = "Title",
-            BackgroundTransparency = 1,
-            Size = UDim2.new(1, -40, 0, 50),
-            Position = UDim2.new(0, 20, 0, 0),
-            Text = title,
-            Font = Enum.Font.GothamBold,
-            TextColor3 = Color3.fromRGB(255, 255, 255),
-            TextSize = 24,
-            TextXAlignment = Enum.TextXAlignment.Left
-        })
-    })
+    local UICorner = Instance.new("UICorner")
+    UICorner.CornerRadius = UDim.new(0, 3)
+    UICorner.Parent = MainFrame
 
-    -- Função para arrastar a janela
-    local dragging, dragInput, dragStart, startPos
+    -- Função para tornar o GUI arrastável
+    local dragging = false
+    local dragInput, dragStart, startPos
+
     local function update(input)
         local delta = input.Position - dragStart
-        mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
     end
 
-    mainFrame.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+    MainFrame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = true
             dragStart = input.Position
-            startPos = mainFrame.Position
+            startPos = MainFrame.Position
+
             input.Changed:Connect(function()
                 if input.UserInputState == Enum.UserInputState.End then
                     dragging = false
@@ -72,44 +64,17 @@ function DominatorUi:CreateWindow(title)
         end
     end)
 
-    mainFrame.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement then
+    MainFrame.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
             dragInput = input
         end
     end)
 
-    UserInputService.InputChanged:Connect(function(input)
-        if input == dragInput and dragging then
+    game:GetService("UserInputService").InputChanged:Connect(function(input)
+        if dragging and input == dragInput then
             update(input)
         end
     end)
 
-    -- Adicionando o botão de destruir a UI
-    local destroyButton = Create("TextButton", {
-        Parent = mainFrame,
-        Text = "Destroy UI",
-        Font = Enum.Font.GothamBold,
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextSize = 18,
-        BackgroundColor3 = Color3.fromRGB(255, 0, 0),
-        Size = UDim2.new(0, 100, 0, 30),
-        Position = UDim2.new(1, -110, 0, 10)
-    }, {
-        Create("UICorner", { CornerRadius = UDim.new(0, 5) })
-    })
-
-    destroyButton.MouseButton1Click:Connect(function()
-        DominatorUi:Destroy()
-    end)
-
-    return {
-        Gui = gui,
-        MainFrame = mainFrame,
-        Tabs = {},
-        CreateTab = function(self, tabName)
-            local tabButton = Create("TextButton", {
-                Name = tabName .. "Button",
-                Parent = self.MainFrame,
-                Text = tabName,
-                Font = Enum.Font.Gotham,
-                TextColor3 = Color3.fromRGB(255, 255
+    return window
+end
