@@ -1,80 +1,41 @@
--- JESUS AJUDA POR FAVOR
-function lib:CreateWindow(title)
-    local window = {
-        Font = Enum.Font.RobotoMono,
-        AccentColor = Color3.fromRGB(255, 85, 85)
-    }
-
-    local GUI = Instance.new("ScreenGui")
-    GUI.Name = "DominatorGUI"
-    GUI.Parent = game.CoreGui
-    GUI.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    GUI.IgnoreGuiInset = true
-
-    local MainFrame = Instance.new("Frame")
-    MainFrame.BackgroundColor3 = Color3.fromRGB(19, 21, 25)
-    MainFrame.BorderSizePixel = 0
-    MainFrame.Size = UDim2.new(0, 600, 0, 300)
-    MainFrame.Position = UDim2.new(0.5, -300, 0.5, -150)
-    MainFrame.Parent = GUI
-
-    local TitleLabel = Instance.new("TextLabel")
-    TitleLabel.BackgroundTransparency = 1
-    TitleLabel.Size = UDim2.new(1, -20, 0, 25)
-    TitleLabel.Position = UDim2.new(0, 25, 0, 1)
-    TitleLabel.Text = title
-    TitleLabel.Font = Enum.Font.Roboto
-    TitleLabel.TextColor3 = Color3.fromRGB(243, 243, 243)
-    TitleLabel.TextSize = 13
-    TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
-    TitleLabel.Parent = MainFrame
-
-    -- Adicionando a ImageLabel no canto do GUI
-    local Icon = Instance.new("ImageLabel")
-    Icon.Position = UDim2.new(0, 3, 0, 3)
-    Icon.Size = UDim2.new(0, 20, 0, 20)
-    Icon.BackgroundTransparency = 1
-    Icon.Image = "rbxassetid://9483813933" -- ID da imagem
-    Icon.Parent = MainFrame
-
-    local UICorner = Instance.new("UICorner")
-    UICorner.CornerRadius = UDim.new(0, 3)
-    UICorner.Parent = MainFrame
-
-    -- Função para tornar o GUI arrastável
-    local dragging = false
-    local dragInput, dragStart, startPos
-
-    local function update(input)
-        local delta = input.Position - dragStart
-        MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-    end
-
-    MainFrame.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = true
-            dragStart = input.Position
-            startPos = MainFrame.Position
-
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    dragging = false
-                end
-            end)
-        end
-    end)
-
-    MainFrame.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-            dragInput = input
-        end
-    end)
-
-    game:GetService("UserInputService").InputChanged:Connect(function(input)
-        if dragging and input == dragInput then
-            update(input)
-        end
-    end)
-
-    return window
+if not game:IsLoaded() then
+    game.Loaded:Wait()
 end
+
+local cloneref = cloneref or function(...) return ... end
+local lib = loadstring(game:HttpGet("URL_DA_SUA_LIB"))()
+local Window = lib:CreateWindow("Meu Script")
+
+local Home = Window:NewTab("Home")
+local Main = Window:NewTab("Main")
+local Credits = Window:NewTab("Créditos")
+
+local Info = Instance.new("TextLabel", Home)
+Info.Text = "Bem-vindo ao script!"
+Info.Size = UDim2.new(0, 200, 0, 50)
+Info.Position = UDim2.new(0.5, -100, 0.2, 0)
+Info.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+local ToggleMain = Instance.new("TextButton", Home)
+ToggleMain.Text = "Ir para Main"
+ToggleMain.Size = UDim2.new(0, 100, 0, 30)
+ToggleMain.Position = UDim2.new(0.5, -50, 0.4, 0)
+ToggleMain.MouseButton1Click:Connect(function()
+    Window:SwitchTab("Main")
+end)
+
+local ToggleCredits = Instance.new("TextButton", Main)
+ToggleCredits.Text = "Ir para Créditos"
+ToggleCredits.Size = UDim2.new(0, 100, 0, 30)
+ToggleCredits.Position = UDim2.new(0.5, -50, 0.4, 0)
+ToggleCredits.MouseButton1Click:Connect(function()
+    Window:SwitchTab("Créditos")
+end)
+
+local BackToHome = Instance.new("TextButton", Credits)
+BackToHome.Text = "Voltar ao Home"
+BackToHome.Size = UDim2.new(0, 100, 0, 30)
+BackToHome.Position = UDim2.new(0.5, -50, 0.4, 0)
+BackToHome.MouseButton1Click:Connect(function()
+    Window:SwitchTab("Home")
+end)
