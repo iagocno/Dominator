@@ -1,41 +1,223 @@
-if not game:IsLoaded() then
-    game.Loaded:Wait()
+-- Dominator Library
+
+local Dominator = {}
+Dominator.__index = Dominator
+
+-- Serviços do Roblox
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local TextService = game:GetService("TextService")
+
+-- Variáveis
+local LocalPlayer = Players.LocalPlayer
+local Mouse = LocalPlayer:GetMouse()
+local GUI = Instance.new("ScreenGui")
+GUI.Name = "DominatorUI"
+GUI.Parent = game.CoreGui
+GUI.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+GUI.IgnoreGuiInset = true
+
+-- Função para criar elementos
+local function Create(instance, properties, children)
+    local obj = Instance.new(instance)
+    for i, v in pairs(properties or {}) do
+        obj[i] = v
+    end
+    for _, child in pairs(children or {}) do
+        child.Parent = obj
+    end
+    return obj
 end
 
-local cloneref = cloneref or function(...) return ... end
-local lib = loadstring(game:HttpGet("URL_DA_SUA_LIB"))()
-local Window = lib:CreateWindow("Meu Script")
+-- Função para animações
+local function tween(instance, time, properties, callback)
+    callback = callback or function() end
+    local tween = TweenService:Create(instance, TweenInfo.new(time, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), properties)
+    tween:Play()
+    tween.Completed:Connect(function()
+        callback()
+    end)
+end
 
-local Home = Window:NewTab("Home")
-local Main = Window:NewTab("Main")
-local Credits = Window:NewTab("Créditos")
+-- Função para criar a janela principal
+function Dominator:CreateWindow(title)
+    local window = {
+        Font = Enum.Font.RobotoMono,
+        AccentColor = Color3.fromRGB(255, 85, 85)
+    }
+    local hidden = false
 
-local Info = Instance.new("TextLabel", Home)
-Info.Text = "Bem-vindo ao script!"
-Info.Size = UDim2.new(0, 200, 0, 50)
-Info.Position = UDim2.new(0.5, -100, 0.2, 0)
-Info.TextColor3 = Color3.fromRGB(255, 255, 255)
+    -- Tooltip
+    local ToolTip = Create("TextLabel", {
+        BackgroundColor3 = Color3.fromRGB(13, 14, 16),
+        AutomaticSize = Enum.AutomaticSize.XY,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        BackgroundTransparency = 1,
+        TextTransparency = 1,
+        Font = window.Font,
+        TextSize = 14,
+        TextColor3 = Color3.new(1, 1, 1),
+        LineHeight = 1.15,
+        Parent = GUI,
+        ZIndex = 99,
+    }, {
+        Create("UICorner", { CornerRadius = UDim.new(0, 4) }),
+        Create("UIPadding", {
+            PaddingLeft = UDim.new(0, 10),
+            PaddingRight = UDim.new(0, 10),
+            PaddingTop = UDim.new(0, 5),
+            PaddingBottom = UDim.new(0, 5)
+        }),
+        Create("UIStroke", {
+            ApplyStrokeMode = 1,
+            Color = Color3.fromRGB(23, 25, 29),
+            Transparency = 1
+        })
+    })
 
-local ToggleMain = Instance.new("TextButton", Home)
-ToggleMain.Text = "Ir para Main"
-ToggleMain.Size = UDim2.new(0, 100, 0, 30)
-ToggleMain.Position = UDim2.new(0.5, -50, 0.4, 0)
-ToggleMain.MouseButton1Click:Connect(function()
-    Window:SwitchTab("Main")
-end)
+    -- Função para seguir o mouse
+    local function tooltipFollow()
+        RunService.RenderStepped:Connect(function()
+            ToolTip.Position = UDim2.new(0, UserInputService:GetMouseLocation().X + 20, 0, UserInputService:GetMouseLocation().Y + 30)
+        end)
+    end
+    coroutine.wrap(tooltipFollow)()
 
-local ToggleCredits = Instance.new("TextButton", Main)
-ToggleCredits.Text = "Ir para Créditos"
-ToggleCredits.Size = UDim2.new(0, 100, 0, 30)
-ToggleCredits.Position = UDim2.new(0.5, -50, 0.4, 0)
-ToggleCredits.MouseButton1Click:Connect(function()
-    Window:SwitchTab("Créditos")
-end)
+    -- Funções para mostrar e esconder o tooltip
+    local function showTooltip(text)
+        if typeof(text) ~= "string" then return end
+        if text == nil then return end
+        ToolTip.Text = text
+        tween(ToolTip, 0.4, {BackgroundTransparency = 0.2, TextTransparency = 0.2})
+        tween(ToolTip.UIStroke, 0.4, {Transparency = 0.2})
+    end
 
-local BackToHome = Instance.new("TextButton", Credits)
-BackToHome.Text = "Voltar ao Home"
-BackToHome.Size = UDim2.new(0, 100, 0, 30)
-BackToHome.Position = UDim2.new(0.5, -50, 0.4, 0)
-BackToHome.MouseButton1Click:Connect(function()
-    Window:SwitchTab("Home")
-end)
+    local function hideTooltip()
+        tween(ToolTip, 0.4, {BackgroundTransparency = 1, TextTransparency = 1})
+        tween(ToolTip.UIStroke, 0.4, {Transparency = 1})
+    end
+
+    -- Janela principal
+    local MainFrame = Create("Frame", {
+        BackgroundColor3 = Color3.fromRGB(19, 21, 25),
+        BorderSizePixel = 0,
+        Size = UDim2.new(0, 600, 0, 400),
+        Position = UDim2.new(0.5, -300, 0.5, -200),
+        Parent = GUI
+    }, {
+        Create("TextLabel", {
+            BackgroundTransparency = 1,
+            Size = UDim2.new(1, -20, 0, 25),
+            Position = UDim2.new(0, 25, 0, 1),
+            Text = title,
+            Font = Enum.Font.Roboto,
+            TextColor3 = Color3.fromRGB(243, 243, 243),
+            TextSize = 13,
+            TextXAlignment = Enum.TextXAlignment.Left
+        }),
+        Create("ImageLabel", {
+            Position = UDim2.new(0, 3, 0, 3),
+            Size = UDim2.new(0, 20, 0, 20),
+            BackgroundTransparency = 1,
+            Image = "rbxassetid://9483813933"
+        }),
+        Create("UICorner", { CornerRadius = UDim.new(0, 3) })
+    })
+
+    -- Função para arrastar a janela
+    local dragging
+    local dragInput
+    local dragStart
+    local startPos
+
+    local function update(input)
+        local delta = input.Position - dragStart
+        MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+
+    MainFrame.TextLabel.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = MainFrame.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+
+    MainFrame.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            update(input)
+        end
+    end)
+
+    -- Botão de minimizar/maximizar
+    local ToggleButton = Create("ImageButton", {
+        BackgroundTransparency = 1,
+        Image = "http://www.roblox.com/asset/?id=6031094670",
+        Size = UDim2.new(0, 20, 0, 20),
+        Position = UDim2.new(1, -25, 0, 5),
+        Parent = MainFrame
+    })
+
+    ToggleButton.MouseButton1Click:Connect(function()
+        hidden = not hidden
+        MainFrame.Visible = not hidden
+    end)
+ 
+    -- Função para adicionar botões à janela
+    function window:AddButton(buttonText, callback)
+        local button = Create("TextButton", {
+            Size = UDim2.new(0, 180, 0, 30),
+            Position = UDim2.new(0, 10, 0, 40),
+            BackgroundColor3 = Color3.fromRGB(38, 40, 45),
+            BorderSizePixel = 0,
+            Text = buttonText,
+            TextColor3 = Color3.fromRGB(243, 243, 243),
+            Font = window.Font,
+            TextSize = 14,
+            Parent = MainFrame
+        }, {
+            Create("UICorner", { CornerRadius = UDim.new(0, 5) }),
+            Create("UIStroke", {
+                ApplyStrokeMode = 1,
+                Color = Color3.fromRGB(23, 25, 29),
+                Transparency = 0.5
+            })
+        })
+
+        button.MouseButton1Click:Connect(function()
+            callback()
+        end)
+
+        return button
+    end
+
+    -- Função para adicionar separadores à janela
+    function window:AddSeparator()
+        local separator = Create("Frame", {
+            BackgroundColor3 = Color3.fromRGB(30, 32, 37),
+            Size = UDim2.new(1, -20, 0, 1),
+            Position = UDim2.new(0, 10, 0, 70),
+            Parent = MainFrame
+        })
+        Create("UICorner", { CornerRadius = UDim.new(0, 3) }).Parent = separator
+        return separator
+    end
+
+    -- Retorna a janela com as funções de botões e separadores
+    return window
+end
+
+return Dominator
