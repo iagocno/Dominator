@@ -1,18 +1,12 @@
--- Verifica se a UI já está rodando
-if _G.DominatorUiLoaded then return end
-_G.DominatorUiLoaded = true
-
--- Dominator Ui Library 2.0
+-- Dominator UI Library
 local DominatorUi = {}
 
 -- Serviços do Roblox
-local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("User InputService")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
-local Mouse = LocalPlayer:GetMouse()
 
--- Função para criar elementos
+-- Função para criar novos elementos
 local function Create(instanceType, properties, children)
     local instance = Instance.new(instanceType)
     for prop, value in pairs(properties) do
@@ -24,18 +18,8 @@ local function Create(instanceType, properties, children)
     return instance
 end
 
--- Função para destruir a UI
-function DominatorUi:DestroyUI()
-    if self.Gui then
-        self.Gui:Destroy()
-        _G.DominatorUiLoaded = false
-    end
-end
-
 -- Função para criar uma nova janela
 function DominatorUi:CreateWindow(title)
-    if self.Gui then return end -- Previne múltiplas execuções
-
     local gui = Create("ScreenGui", {
         Name = "DominatorUi",
         Parent = game.CoreGui,
@@ -47,17 +31,15 @@ function DominatorUi:CreateWindow(title)
         Name = "MainFrame",
         Parent = gui,
         BackgroundColor3 = Color3.fromRGB(25, 25, 25),
-        Size = UDim2.new(0, 400, 0, 300),
-        Position = UDim2.new(0.5, -200, 0.5, -150),
-        AnchorPoint = Vector2.new(0.5, 0.5),
-        Active = true,
-        Draggable = true
+        Size = UDim2.new(0, 600, 0, 400),
+        Position = UDim2.new(0.5, -300, 0.5, -200),
+        AnchorPoint = Vector2.new(0.5, 0.5)
     }, {
         Create("UICorner", { CornerRadius = UDim.new(0, 5) }),
         Create("TextLabel", {
             Name = "Title",
             BackgroundTransparency = 1,
-            Size = UDim2.new(1, -40, 0, 40),
+            Size = UDim2.new(1, -40, 0, 50),
             Position = UDim2.new(0, 20, 0, 0),
             Text = title,
             Font = Enum.Font.GothamBold,
@@ -67,75 +49,92 @@ function DominatorUi:CreateWindow(title)
         })
     })
 
-    -- Botão Destroy UI
-    local destroyButton = Create("TextButton", {
-        Parent = mainFrame,
-        Text = "Destroy UI",
-        Font = Enum.Font.GothamBold,
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextSize = 18,
-        BackgroundColor3 = Color3.fromRGB(255, 0, 0),
-        Size = UDim2.new(0, 100, 0, 30),
-        Position = UDim2.new(1, -110, 0, 10)
-    }, {
-        Create("UICorner", { CornerRadius = UDim.new(0, 5) })
-    })
-
-    destroyButton.MouseButton1Click:Connect(function()
-        DominatorUi:DestroyUI()
-    end)
-
-    self.Gui = gui
-    self.MainFrame = mainFrame
-    self.Tabs = {}
-
-    -- Criar função para abas
-    function self:CreateTab(tabName)
-        local tabButton = Create("TextButton", {
-            Name = tabName .. "Button",
-            Parent = self.MainFrame,
-            Text = tabName,
-            Font = Enum.Font.Gotham,
-            TextColor3 = Color3.fromRGB(255, 255, 255),
-            TextSize = 18,
-            BackgroundColor3 = Color3.fromRGB(30, 30, 30),
-            Size = UDim2.new(0, 150, 0, 40),
-            Position = UDim2.new(0, #self.Tabs * 150, 0, 50)
-        }, {
-            Create("UICorner", { CornerRadius = UDim.new(0, 5) })
-        })
-
-        local tabFrame = Create("Frame", {
-            Name = tabName .. "Frame",
-            Parent = self.MainFrame,
-            BackgroundColor3 = Color3.fromRGB(35, 35, 35),
-            Size = UDim2.new(1, -20, 1, -100),
-            Position = UDim2.new(0, 10, 0, 90),
-            Visible = false
-        }, {
-            Create("UICorner", { CornerRadius = UDim.new(0, 5) })
-        })
-
-        table.insert(self.Tabs, { Button = tabButton, Frame = tabFrame })
-
-        tabButton.MouseButton1Click:Connect(function()
-            for _, tab in ipairs(self.Tabs) do
-                tab.Frame.Visible = false
-                tab.Button.TextColor3 = Color3.fromRGB(255, 255, 255)
-            end
-            tabFrame.Visible = true
-            tabButton.TextColor3 = Color3.fromRGB(255, 0, 0) -- Aba ativa fica vermelha
-        end)
-
-        if #self.Tabs == 1 then
-            tabFrame.Visible = true
-            tabButton.TextColor3 = Color3.fromRGB(255, 0, 0)
-        end
-
-        return tabFrame
+    -- Função para arrastar a janela
+    local dragging, dragInput, dragStart, startPos
+    local function update(input)
+        local delta = input.Position - dragStart
+        mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
     end
 
-    return self
+    mainFrame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = mainFrame.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+
+    mainFrame.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
+            dragInput = input
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            update(input)
+        end
+    end)
+
+    return {
+        Gui = gui,
+        MainFrame = mainFrame,
+        Tabs = {},
+        CreateTab = function(self, tabName)
+            local tabButton = Create("TextButton", {
+                Name = tabName .. "Button",
+                Parent = self.MainFrame,
+                Text = tabName,
+                Font = Enum.Font.Gotham,
+                TextColor3 = Color3.fromRGB(255, 255, 255),
+                TextSize = 18,
+                BackgroundColor3 = Color3.fromRGB(30, 30, 30),
+                Size = UDim2.new(0, 150, 0, 40),
+                Position = UDim2.new(0, #self.Tabs * 150, 0, 50)
+            }, {
+                Create("UICorner", { CornerRadius = UDim.new(0, 5) })
+            })
+
+            local tabFrame = Create("Frame", {
+                Name = tabName .. "Frame",
+                Parent = self.MainFrame,
+                BackgroundColor3 = Color3.fromRGB(35, 35, 35),
+                Size = UDim2.new(1, -20, 1, -100),
+                Position = UDim2.new(0, 10, 0, 90),
+                Visible = false
+            }, {
+                Create("UICorner", { CornerRadius = UDim.new(0, 5) })
+            })
+
+            table.insert(self.Tabs, { Button = tabButton, Frame = tabFrame })
+
+            tabButton.MouseButton1Click:Connect(function()
+                for _, tab in ipairs(self.Tabs) do
+                    tab.Frame.Visible = false
+                    tab.Button.TextColor3 = Color3.fromRGB(255, 255, 255) -- Reset color
+                end
+                tabFrame.Visible = true
+                tabButton.TextColor3 = Color3.fromRGB(255, 0, 0) -- Active color
+            end)
+
+            if #self.Tabs == 1 then
+                tabFrame.Visible = true
+                tabButton.TextColor3 = Color3.fromRGB(255, 0, 0) -- Active color
+            end
+
+            return tabFrame
+        end,
+        Destroy = function(self)
+            if self.Gui then
+                self.Gui:Destroy()
+            end
+        end
+    }
 end
 
 return DominatorUi
