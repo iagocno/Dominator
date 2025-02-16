@@ -1,4 +1,4 @@
--- Dominator UI Library BLACK BOX
+-- Dominator UI Library pufavor
 local DominatorUi = {}
 
 -- Serviços do Roblox
@@ -81,31 +81,60 @@ function DominatorUi:CreateWindow(title)
         end
     end)
 
-    -- Estrutura para abas
-    self.Tabs = {}
-    self.CurrentTab = nil
+    return {
+        Gui = gui,
+        MainFrame = mainFrame,
+        Tabs = {},
+        CreateTab = function(self, tabName)
+            local tabButton = Create("TextButton", {
+                Name = tabName .. "Button",
+                Parent = self.MainFrame,
+                Text = tabName,
+                Font = Enum.Font.Gotham,
+                TextColor3 = Color3.fromRGB(255, 255, 255),
+                TextSize = 18,
+                BackgroundColor3 = Color3.fromRGB(30, 30, 30),
+                Size = UDim2.new(0, 150, 0, 40),
+                Position = UDim2.new(0, #self.Tabs * 150, 0, 50)
+            }, {
+                Create("UICorner", { CornerRadius = UDim.new(0, 5) })
+            })
 
-    function self:CreateTab(tabName)
-        local tabButton = Create("TextButton", {
-            Name = tabName .. "Button",
-            Parent = mainFrame,
-            Text = tabName,
-            Font = Enum.Font.Gotham,
-            TextColor3 = Color3.fromRGB(255, 255, 255),
-            TextSize = 18,
-            BackgroundColor3 = Color3.fromRGB(30, 30, 30),
-            Size = UDim2.new(0, 150, 0, 40),
-            Position = UDim2.new(0, #self.Tabs * 150, 0, 50)
-        }, {
-            Create("UICorner", { CornerRadius = UDim.new(0, 5) })
-        })
+            local tabFrame = Create("Frame", {
+                Name = tabName .. "Frame",
+                Parent = self.MainFrame,
+                BackgroundColor3 = Color3.fromRGB(35, 35, 35),
+                Size = UDim2.new(1, -20, 1, -100),
+                Position = UDim2.new(0, 10, 0, 90),
+                Visible = false
+            }, {
+                Create("UICorner", { CornerRadius = UDim.new(0, 5) })
+            })
 
-        local tabFrame = Create("Frame", {
-            Name = tabName .. "Frame",
-            Parent = mainFrame,
-            BackgroundColor3 = Color3.fromRGB(35, 35, 35),
-            Size = UDim2.new(1, -20, 1, -100),
-            Position = UDim2.new(0, 10, 0, 90),
-            Visible = false
-        }, {
-            Create("UICorner", { CornerRadius = UDim.new(0, 
+            table.insert(self.Tabs, { Button = tabButton, Frame = tabFrame })
+
+            tabButton.MouseButton1Click:Connect(function()
+                for _, tab in ipairs(self.Tabs) do
+                    tab.Frame.Visible = false
+                    tab.Button.TextColor3 = Color3.fromRGB(255, 255, 255) -- Reset color
+                end
+                tabFrame.Visible = true
+                tabButton.TextColor3 = Color3.fromRGB(255, 0, 0) -- Active color
+            end)
+
+            if #self.Tabs == 1 then
+                tabFrame.Visible = true
+                tabButton.TextColor3 = Color3.fromRGB(255, 0, 0) -- Active color
+            end
+
+            return tabFrame
+        end,
+        Destroy = function(self)
+            if self.Gui then
+                self.Gui:Destroy()
+            end
+        end
+    }
+end
+
+return DominatorUi
