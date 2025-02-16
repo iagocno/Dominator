@@ -1,8 +1,8 @@
--- Dominator UI Library
+-- Dominator UI Library blacakboax
 local DominatorUi = {}
 
 -- Serviços do Roblox
-local UserInputService = game:GetService("UserInputService")
+local UserInputService = game:GetService("User InputService")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
@@ -79,24 +79,6 @@ function DominatorUi:CreateWindow(title)
         if input == dragInput and dragging then
             update(input)
         end
-    end)
-
-    -- Botão para destruir a GUI
-    local destroyButton = Create("TextButton", {
-        Parent = mainFrame,
-        Text = "Destroy UI",
-        Font = Enum.Font.GothamBold,
-        TextColor3 = Color3.fromRGB(255, 0, 0),
-        TextSize = 18,
-        BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-        Size = UDim2.new(0, 100, 0, 30),
-        Position = UDim2.new(1, -110, 0, 10)
-    }, {
-        Create("UICorner", { CornerRadius = UDim.new(0, 5) })
-    })
-
-    destroyButton.MouseButton1Click:Connect(function()
-        DominatorUi:Destroy()
     end)
 
     return {
