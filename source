@@ -1,56 +1,152 @@
 -- Dominator Library
--- Baseado em Fluxus UI e Orion UI
--- Criado para facilitar a criacao de GUIs e utilidades
+-- Biblioteca personalizada inspirada no Fluxus UI e Orion UI
 
 local Dominator = {}
 
--- Carregar Fluxus UI
-local Fluxus = loadstring(game:HttpGet("https://raw.githubusercontent.com/Imalwibest/Imalwibest/refs/heads/main/Fluxus%20Ui.lib"))()
--- Carregar Orion UI
-local Orion = loadstring(game:HttpGet("https://raw.githubusercontent.com/jensonhirst/Orion/main/source"))()
+-- Função para criar uma nova janela
+function Dominator:CreateWindow(title)
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "DominatorUI"
+    ScreenGui.Parent = game.CoreGui
 
--- Criar uma GUI usando Orion UI
-function Dominator.CreateOrionGUI()
-    local Window = Orion:MakeWindow({Name = "Dominator Hub", HidePremium = false, SaveConfig = true, ConfigFolder = "Dominator"})
-    local Tab = Window:MakeTab({Name = "Main", Icon = "rbxassetid://4483345998", PremiumOnly = false})
-    
-    Tab:AddButton({Name = "Exemplo de Botao", Callback = function()
-        print("Botao pressionado!")
-    end})
-    
-    Orion:Init()
-end
+    local MainFrame = Instance.new("Frame")
+    MainFrame.Name = "MainFrame"
+    MainFrame.Parent = ScreenGui
+    MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    MainFrame.Size = UDim2.new(0, 600, 0, 400)
+    MainFrame.Position = UDim2.new(0.5, -300, 0.5, -200)
+    MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 
--- Criar uma GUI usando Fluxus UI
-function Dominator.CreateFluxusGUI()
-    local Window = Fluxus:CreateWindow("Dominator Hub")
-    local Tab = Window:CreateTab("Main")
-    
-    Tab:CreateButton("Exemplo de Botao", function()
-        print("Botao Fluxus pressionado!")
+    local UICorner = Instance.new("UICorner")
+    UICorner.Parent = MainFrame
+
+    local TitleBar = Instance.new("Frame")
+    TitleBar.Name = "TitleBar"
+    TitleBar.Parent = MainFrame
+    TitleBar.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    TitleBar.Size = UDim2.new(1, 0, 0, 50)
+
+    local Title = Instance.new("TextLabel")
+    Title.Name = "Title"
+    Title.Parent = TitleBar
+    Title.BackgroundTransparency = 1
+    Title.Size = UDim2.new(1, -20, 1, 0)
+    Title.Position = UDim2.new(0, 10, 0, 0)
+    Title.Font = Enum.Font.SourceSansBold
+    Title.Text = title
+    Title.TextSize = 24
+    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Title.TextXAlignment = Enum.TextXAlignment.Left
+
+    -- Função para tornar a janela arrastável
+    local dragging = false
+    local dragInput, mousePos, framePos
+
+    TitleBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            mousePos = input.Position
+            framePos = MainFrame.Position
+
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
     end)
-end
 
--- Funcoes utilitarias
-function Dominator.TeleportTo(position)
-    local player = game.Players.LocalPlayer
-    if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        player.Character.HumanoidRootPart.CFrame = CFrame.new(position)
-    end
-end
+    TitleBar.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
+            dragInput = input
+        end
+    end)
 
-function Dominator.SetWalkSpeed(speed)
-    local player = game.Players.LocalPlayer
-    if player and player.Character and player.Character:FindFirstChild("Humanoid") then
-        player.Character.Humanoid.WalkSpeed = speed
-    end
-end
+    game:GetService("UserInputService").InputChanged:Connect(function(input)
+        if dragging and input == dragInput then
+            local delta = input.Position - mousePos
+            MainFrame.Position = UDim2.new(
+                framePos.X.Scale,
+                framePos.X.Offset + delta.X,
+                framePos.Y.Scale,
+                framePos.Y.Offset + delta.Y
+            )
+        end
+    end)
 
-function Dominator.SetJumpPower(power)
-    local player = game.Players.LocalPlayer
-    if player and player.Character and player.Character:FindFirstChild("Humanoid") then
-        player.Character.Humanoid.JumpPower = power
+    local TabContainer = Instance.new("Frame")
+    TabContainer.Name = "TabContainer"
+    TabContainer.Parent = MainFrame
+    TabContainer.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    TabContainer.Size = UDim2.new(0, 150, 1, -50)
+    TabContainer.Position = UDim2.new(0, 0, 0, 50)
+
+    local UICornerTabs = Instance.new("UICorner")
+    UICornerTabs.Parent = TabContainer
+
+    local TabButtons = Instance.new("Frame")
+    TabButtons.Name = "TabButtons"
+    TabButtons.Parent = TabContainer
+    TabButtons.BackgroundTransparency = 1
+    TabButtons.Size = UDim2.new(1, 0, 1, 0)
+
+    local UIListLayout = Instance.new("UIListLayout")
+    UIListLayout.Parent = TabButtons
+    UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+    local ContentFrame = Instance.new("Frame")
+    ContentFrame.Name = "ContentFrame"
+    ContentFrame.Parent = MainFrame
+    ContentFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    ContentFrame.Size = UDim2.new(1, -150, 1, -50)
+    ContentFrame.Position = UDim2.new(0, 150, 0, 50)
+
+    local UICornerContent = Instance.new("UICorner")
+    UICornerContent.Parent = ContentFrame
+
+    local pages = {}
+
+    -- Função para criar uma nova aba
+    function Dominator:CreateTab(tabName)
+        local TabButton = Instance.new("TextButton")
+        TabButton.Name = tabName .. "TabButton"
+        TabButton.Parent = TabButtons
+        TabButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+        TabButton.Size = UDim2.new(1, -10, 0, 50)
+        TabButton.Position = UDim2.new(0, 5, 0, 0)
+        TabButton.Font = Enum.Font.SourceSans
+        TabButton.Text = tabName
+        TabButton.TextSize = 20
+        TabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+        local UICornerButton = Instance.new("UICorner")
+        UICornerButton.Parent = TabButton
+
+        local Page = Instance.new("Frame")
+        Page.Name = tabName .. "Page"
+        Page.Parent = ContentFrame
+        Page.BackgroundTransparency = 1
+        Page.Size = UDim2.new(1, 0, 1, 0)
+        Page.Visible = false
+
+        pages[tabName] = Page
+
+        TabButton.MouseButton1Click:Connect(function()
+            for _, p in pairs(pages) do
+                p.Visible = false
+            end
+            Page.Visible = true
+        end)
+
+        return Page
     end
+
+    -- Função para fechar o GUI
+    function Dominator:Close()
+        ScreenGui:Destroy()
+    end
+
+    return Dominator
 end
 
 return Dominator
