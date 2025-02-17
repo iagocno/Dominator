@@ -1,140 +1,56 @@
--- 1️⃣ LIB DOMINATOR
--- Corrigindo a biblioteca para garantir que funcione corretamente.
+-- Dominator Library
+-- Baseado em Fluxus UI e Orion UI
+-- Criado para facilitar a criacao de GUIs e utilidades
 
--- Evita execução duplicada
-_G.DominatorUiLoaded = _G.DominatorUiLoaded or false
-if _G.DominatorUiLoaded then return end
-_G.DominatorUiLoaded = true
+local Dominator = {}
 
-local DominatorUi = {}
+-- Carregar Fluxus UI
+local Fluxus = loadstring(game:HttpGet("https://raw.githubusercontent.com/Imalwibest/Imalwibest/refs/heads/main/Fluxus%20Ui.lib"))()
+-- Carregar Orion UI
+local Orion = loadstring(game:HttpGet("https://raw.githubusercontent.com/jensonhirst/Orion/main/source"))()
 
--- Serviços do Roblox
-local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-
--- Função para criar elementos de UI
-local function Create(instanceType, properties, children)
-    local instance = Instance.new(instanceType)
-    for prop, value in pairs(properties) do
-        instance[prop] = value
-    end
-    for _, child in ipairs(children or {}) do
-        child.Parent = instance
-    end
-    return instance
+-- Criar uma GUI usando Orion UI
+function Dominator.CreateOrionGUI()
+    local Window = Orion:MakeWindow({Name = "Dominator Hub", HidePremium = false, SaveConfig = true, ConfigFolder = "Dominator"})
+    local Tab = Window:MakeTab({Name = "Main", Icon = "rbxassetid://4483345998", PremiumOnly = false})
+    
+    Tab:AddButton({Name = "Exemplo de Botao", Callback = function()
+        print("Botao pressionado!")
+    end})
+    
+    Orion:Init()
 end
 
--- Função para destruir a UI
-function DominatorUi:DestroyUI()
-    if self.Gui then
-        self.Gui:Destroy()
-        _G.DominatorUiLoaded = false
-    end
-end
-
--- Função para criar uma nova janela
-function DominatorUi:CreateWindow(title)
-    if self.Gui then return end -- Previne múltiplas execuções
-
-    local gui = Create("ScreenGui", {
-        Name = "DominatorUi",
-        Parent = game.CoreGui,
-        ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
-        IgnoreGuiInset = true
-    }, {})
-
-    local mainFrame = Create("Frame", {
-        Name = "MainFrame",
-        Parent = gui,
-        BackgroundColor3 = Color3.fromRGB(25, 25, 25),
-        Size = UDim2.new(0, 600, 0, 400),
-        Position = UDim2.new(0.5, -300, 0.5, -200),
-        AnchorPoint = Vector2.new(0.5, 0.5)
-    }, {
-        Create("UICorner", { CornerRadius = UDim.new(0, 5) }),
-        Create("TextLabel", {
-            Name = "Title",
-            BackgroundTransparency = 1,
-            Size = UDim2.new(1, -40, 0, 50),
-            Position = UDim2.new(0, 20, 0, 0),
-            Text = title,
-            Font = Enum.Font.GothamBold,
-            TextColor3 = Color3.fromRGB(255, 255, 255),
-            TextSize = 24,
-            TextXAlignment = Enum.TextXAlignment.Left
-        })
-    })
-
-    -- Botão Destroy UI
-    local destroyButton = Create("TextButton", {
-        Parent = mainFrame,
-        Text = "Destroy UI",
-        Font = Enum.Font.GothamBold,
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextSize = 18,
-        BackgroundColor3 = Color3.fromRGB(255, 0, 0),
-        Size = UDim2.new(0, 100, 0, 30),
-        Position = UDim2.new(1, -110, 0, 10)
-    }, {
-        Create("UICorner", { CornerRadius = UDim.new(0, 5) })
-    })
-    destroyButton.MouseButton1Click:Connect(function()
-        self:DestroyUI()
+-- Criar uma GUI usando Fluxus UI
+function Dominator.CreateFluxusGUI()
+    local Window = Fluxus:CreateWindow("Dominator Hub")
+    local Tab = Window:CreateTab("Main")
+    
+    Tab:CreateButton("Exemplo de Botao", function()
+        print("Botao Fluxus pressionado!")
     end)
-
-    self.Gui = gui
-    self.MainFrame = mainFrame
-    self.Tabs = {}
-
-    -- Função para criar abas
-    function self:CreateTab(tabName)
-        local tabButton = Create("TextButton", {
-            Name = tabName .. "Button",
-            Parent = self.MainFrame,
-            Text = tabName,
-            Font = Enum.Font.Gotham,
-            TextColor3 = Color3.fromRGB(255, 255, 255),
-            TextSize = 18,
-            BackgroundColor3 = Color3.fromRGB(30, 30, 30),
-            Size = UDim2.new(0, 150, 0, 40),
-            Position = UDim2.new(0, #self.Tabs * 150, 0, 50)
-        }, {
-            Create("UICorner", { CornerRadius = UDim.new(0, 5) })
-        })
-
-        local tabFrame = Create("Frame", {
-            Name = tabName .. "Frame",
-            Parent = self.MainFrame,
-            BackgroundColor3 = Color3.fromRGB(35, 35, 35),
-            Size = UDim2.new(1, -20, 1, -100),
-            Position = UDim2.new(0, 10, 0, 90),
-            Visible = false
-        }, {
-            Create("UICorner", { CornerRadius = UDim.new(0, 5) })
-        })
-
-        table.insert(self.Tabs, { Button = tabButton, Frame = tabFrame })
-
-        tabButton.MouseButton1Click:Connect(function()
-            for _, tab in ipairs(self.Tabs) do
-                tab.Frame.Visible = false
-                tab.Button.TextColor3 = Color3.fromRGB(255, 255, 255)
-            end
-            tabFrame.Visible = true
-            tabButton.TextColor3 = Color3.fromRGB(255, 0, 0) -- Aba ativa fica vermelha
-        end)
-
-        if #self.Tabs == 1 then
-            tabFrame.Visible = true
-            tabButton.TextColor3 = Color3.fromRGB(255, 0, 0)
-        end
-
-        return tabFrame
-    end
-
-    return self
 end
 
-return DominatorUi
+-- Funcoes utilitarias
+function Dominator.TeleportTo(position)
+    local player = game.Players.LocalPlayer
+    if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        player.Character.HumanoidRootPart.CFrame = CFrame.new(position)
+    end
+end
+
+function Dominator.SetWalkSpeed(speed)
+    local player = game.Players.LocalPlayer
+    if player and player.Character and player.Character:FindFirstChild("Humanoid") then
+        player.Character.Humanoid.WalkSpeed = speed
+    end
+end
+
+function Dominator.SetJumpPower(power)
+    local player = game.Players.LocalPlayer
+    if player and player.Character and player.Character:FindFirstChild("Humanoid") then
+        player.Character.Humanoid.JumpPower = power
+    end
+end
+
+return Dominator
