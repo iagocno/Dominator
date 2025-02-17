@@ -1,5 +1,5 @@
-Deprecated. Use Rayfield.
-https://docs.sirius.menu/rayfield
-https://github.com/SiriusSoftwareLtd/Rayfield
+Use Dominator.
+https://github.com/iagocno/Dominator/blob/main/Documentation.md
+https://github.com/iagocno/Dominator
 
-![Image](https://github.com/user-attachments/assets/2abba254-9948-4c9b-919b-74f2e86e12ed)
+![Image](https://github.com/user-attachments/assets/4ee17321-d4c6-4b45-9992-75f63bd43b8b)
