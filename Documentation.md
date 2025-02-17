@@ -1,4 +1,4 @@
-# Domintaor Library
+# Dominator Library
 This documentation is for the stable release of Dominator Library.
 
 ## Booting the Library
